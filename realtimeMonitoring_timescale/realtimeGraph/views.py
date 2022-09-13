@@ -491,6 +491,40 @@ La respuesta tiene esta estructura:
 }
 """
 
+def get_city_data(request, **kwargs):
+    cityParam = kwargs.get("cityId", 1)
+    measurementParam = request.GET.get('measurement', None)
+
+    cities = City.objects.all()
+    if cityParam != None:
+        citiesSelected = City.objects.filter(id=cityParam)[0]
+    elif cities.count() > 0:
+        citiesSelected = cities[0]
+
+    measurement = Measurement.objects.all()
+    if measurementParam != None:
+        measurementSelected = City.objects.filter(id=measurementParam)[0]
+    elif measurement.count() > 0:
+        measurementSelected = measurement[0]
+
+    data = Data.objects.filter(station__location__city = citiesSelected, measurement = measurementSelected)
+    data_result = {}
+    data_result['city'] = citiesSelected.name
+    data_result['measurement'] = measurementSelected.name
+    data_result['values'] = []
+
+    count = 0
+    suma = 0
+    for record in data:
+        for value in record.values:
+            data_result['values'].append(value)
+            suma = suma + value
+            count = count + 1
+
+    data_result['avg'] = suma/count
+    return JsonResponse(data_result)
+
+
 
 def get_map_json(request, **kwargs):
     data_result = {}
